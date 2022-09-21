@@ -3,60 +3,14 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <assert.h>
+#include "utils.cpp"
 
 using namespace std;
 
-bool is_alpha(char c){
-  return !isalpha(c);
-}
-
-string remove_non_alpha(string text) {
-  replace_if (text.begin(), text.end(), is_alpha, ' ');
-  return text;
-}
-
-string lower(string text) {
-  for (auto &c : text) {
-    c = tolower(c);
-  }
-
-  return text;
-}
-
-vector<string> split(string text, char key) {
-  vector<string> splitted_text;
-  string word = "";
-  for (auto &c : text+key) {
-    if (c == key) {
-      if (word != "") {
-        splitted_text.push_back(word);
-      }
-
-      word = "";
-      continue;
-    }
-    
-    word += c;
-  }
-
-  return splitted_text;
-}
-
-vector<string> read_file(string path) {
-  ifstream input(path);
-  string line;
-  vector<string> lines;
-
-  while (getline(input, line)) {
-    lines.push_back(line);
-  }
-
-  input.close();
-
-  return lines;
-}
-
 vector<string> extract_words(string path_to_file) {
+  assert(("I need a path to the file!", !path_to_file.empty()));
+
   vector<string> file_lines = read_file(path_to_file);
   vector<string> word_list;
 
@@ -73,6 +27,9 @@ vector<string> extract_words(string path_to_file) {
 }
 
 vector<string> remove_stop_words(vector<string> word_list) {
+  assert(("I need a non-empty list of words!", !word_list.empty()));
+  assert(("I need at least 25 words!", (int)word_list.size() >= 25));
+
   vector<string> file_lines = read_file("stop_words.txt");
   vector<string> stop_words;
   vector<string> cleaned_word_list;
@@ -97,6 +54,9 @@ vector<string> remove_stop_words(vector<string> word_list) {
 }
 
 map<string, int> frequency(vector<string> word_list) {
+  assert(("I need a non-empty list of words", !word_list.empty()));
+  assert(("I need at least 25 non stop words!", (int)word_list.size() >= 25));
+  
   map<string, int> word_freqs;
 
   for (auto word : word_list) {
@@ -106,15 +66,9 @@ map<string, int> frequency(vector<string> word_list) {
   return word_freqs;
 }
 
-bool compare_word_frequency(pair<string, int> word1, pair<string, int> word2) {
-  if (word2.second == word1.second) {
-    return word1.first < word2.first;
-  }
-
-  return word1.second > word2.second;
-}
-
 vector<pair<string, int>> sort_by_frequency(map<string, int> word_frequency) {
+  assert(("The word frequency dictionary cannot be empty!", !word_frequency.empty()));
+
   vector<pair<string, int>> frequencies;
 
   for (auto word_frequency : word_frequency) {
@@ -126,8 +80,11 @@ vector<pair<string, int>> sort_by_frequency(map<string, int> word_frequency) {
   return frequencies;
 }
 
-int main() {
-  auto word_list = remove_stop_words(extract_words("pride_and_prejudice.txt"));
+int main(int argc, char *argv[]) {
+  assert(("Tantrum! I need a path to the file as an argument!", argc >= 2));
+  assert(("Tantrum! I need only one argument - a path to a file", argc <= 2));
+  
+  auto word_list = remove_stop_words(extract_words(argv[1]));
   
   auto ans = sort_by_frequency(frequency(word_list));
 
